@@ -175,6 +175,23 @@ void FifthRequest(string str, L1List<NinjaInfo_t> nList)
 	if (found == false)
 		cout << "-1" << endl;
 }
+bool existStopPoint(L1Item<NinjaInfo_t> *p)
+{
+	L1Item<NinjaInfo_t> *root = p;
+	L1Item<NinjaInfo_t> *pRun = root;
+	pRun = pRun->next;
+	while (pRun && strcmp(pRun->data.id, root->data.id) == 0)
+	{
+		if (distanceEarth(root->data.latitude, root->data.longitude, pRun->data.latitude, pRun->data.longitude) >= 0.005)
+		{
+			root = pRun;
+		}
+		else
+			return true;
+		pRun = pRun->next;
+	}
+	return false;
+}
 void SixthRequest(string str, L1List<NinjaInfo_t> nList)
 {
 	//Thời điểm lưu trữ khi ninja có số hiệu ABCD bắt đầu dừng lại lần cuối cùng trong ngày.
@@ -200,19 +217,18 @@ void SixthRequest(string str, L1List<NinjaInfo_t> nList)
 			found = true;
 			root = pHead;
 			pHead = pHead->next;
-			while (pHead)
+			while (pHead && strcmp(pHead->data.id, root->data.id) == 0)
 			{
-				if (strcmp(pHead->data.id, root->data.id) != 0)
-					break;																											//if root-behind and root is not the same ninja
 				if (distanceEarth(root->data.latitude, root->data.longitude, pHead->data.latitude, pHead->data.longitude) >= 0.005) //compare distance the root-behind and root
 				{
-					if (pHead->next != NULL)
+					if (existStopPoint(pHead))
 					{
 						root = pHead; //Update root
 					}
 				}
 				pHead = pHead->next;
 			}
+
 			break;
 		}
 		pHead = pHead->next;
@@ -770,7 +786,7 @@ bool processEvent(ninjaEvent_t &event, L1List<NinjaInfo_t> &nList, void *pGdata)
 		if (choice[0] == '5')
 			FifthRequest(choice, nList); //ok
 		else if (choice[0] == '6')
-			SixthRequest(choice, nList);
+			SixthRequest(choice, nList); //ok
 		else if (choice[0] == '7')
 			SeventhRequest(choice, nList); //ok
 		else if (choice[0] == '8')
