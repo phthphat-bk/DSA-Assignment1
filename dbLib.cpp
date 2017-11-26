@@ -67,7 +67,7 @@ bool parseNinjaInfo(char* pBuf, NinjaInfo_t& nInfo) {
 void process(L1List<ninjaEvent_t>& eventList, L1List<NinjaInfo_t>& bList) {
 	void* pGdata = NULL;
 	//static_cast <L1List<ninjaEvent>*> (pGdata = &eventList);
-	//pGdata = &eventList;
+	pGdata = &eventList;
 	L1List<ninjaEvent_t>*eList = static_cast<L1List<ninjaEvent_t>*>(pGdata);
 	initNinjaGlobalData(&pGdata);
 	

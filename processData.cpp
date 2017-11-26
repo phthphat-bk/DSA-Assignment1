@@ -50,11 +50,11 @@ void SortMaxtoMin(L1List<T> list)
 
 void ZerothRequest(string str, L1List<NinjaInfo_t> nList, void *pGdata)
 {
-	L1List<ninjaEvent_t> eList;
-	loadEvents("events.txt", eList);
+	L1List<ninjaEvent_t> *eList = static_cast<L1List<ninjaEvent_t>*>(pGdata);
+	//loadEvents("events.txt", eList);
 	cout << str << ": ";
 	//Danh sách các mã yêu cầu trong tập tin events.txt
-	L1Item<ninjaEvent> *pEventHead = eList._head;
+	L1Item<ninjaEvent> *pEventHead = eList->_head;
 	while (pEventHead)
 	{
 		cout << pEventHead->data.code << " ";
@@ -340,7 +340,7 @@ void EighthRequest(string str, L1List<NinjaInfo_t> nList)
 	}
 	if (found)
 	{
-		cout << ss.str() << " has moved (km): ";
+		//cout << ss.str() << " has moved (km): ";
 		cout << distance << endl;
 	}
 	else
@@ -685,7 +685,7 @@ void TwelfthRequest_2(string str, L1List<NinjaInfo_t> nList)
 		}
 		pRun = pRun->next;
 	}
-	cout << id_time_stop_Max << " " << time_stop_Max << endl;
+	cout << id_time_stop_Max << /*" " << time_stop_Max << */endl;
 }
 void ThirteenthRequest(string str, L1List<NinjaInfo_t> nList)
 {
