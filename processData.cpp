@@ -24,7 +24,7 @@ void releaseNinjaGlobalData(){};
 // };
 
 template <class T>
-void SortMaxtoMin(L1List<T> list)
+void SortMaxtoMin(L1List<T> &list)
 {
 	for (int i = 0; i < list.getSize(); i++)
 	{
@@ -90,7 +90,7 @@ void ThirdRequest(string str, L1List<NinjaInfo_t> nList)
 	L1Item<NinjaInfo_t> *pHead = nList._head;
 	L1Item<NinjaInfo_t> *pCur = pHead;
 	pHead = pHead->next;
-	while(pHead)
+	while (pHead)
 	{
 		if (strcmp(pHead->data.id, pCur->data.id) != 0)
 		{
@@ -506,7 +506,7 @@ void TenthRequest(string str, L1List<NinjaInfo_t> nList)
 	}
 	cout << id_timeMoveMax << endl;
 }
-bool deleteID(L1List<NinjaInfo_t> nList, char *id)
+bool deleteID(L1List<NinjaInfo_t> &nList, char *id)
 {
 	if (nList.isEmpty())
 		return true;
@@ -542,7 +542,8 @@ bool deleteID(L1List<NinjaInfo_t> nList, char *id)
 			pCur = pCur->next;
 		}
 	}
-	if(isDeleted) return true;
+	if (isDeleted)
+		return true;
 	return false;
 }
 void EleventhRequest(string str, L1List<NinjaInfo_t> &nList)
@@ -563,6 +564,7 @@ void EleventhRequest(string str, L1List<NinjaInfo_t> &nList)
 	L1Item<NinjaInfo_t> *root = pHead; //set root
 	L1List<string> nameList;		   //build list of name
 	nameList._head = NULL;
+
 	while (true)
 	{
 		if (pHead) //pHead isnt NULL
@@ -576,8 +578,8 @@ void EleventhRequest(string str, L1List<NinjaInfo_t> &nList)
 					ss << root->data.id;
 					ss >> target;
 					nameList.push_back(target);
-					root = pHead; //update root;
 				}
+				root = pHead; //update root;
 			}
 		}
 		else //pHead is NULL
@@ -607,6 +609,7 @@ void EleventhRequest(string str, L1List<NinjaInfo_t> &nList)
 	char target[ID_MAX_LENGTH];
 	strcpy(target, nameList._head->data.c_str());
 	deleteID(nList, target);
+	nameList.clean();
 }
 
 void TwelfthRequest(string str, L1List<NinjaInfo_t> nList)
