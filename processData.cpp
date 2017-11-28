@@ -50,7 +50,7 @@ void SortMaxtoMin(L1List<T> list)
 
 void ZerothRequest(string str, L1List<NinjaInfo_t> nList, void *pGdata)
 {
-	L1List<ninjaEvent_t> *eList = static_cast<L1List<ninjaEvent_t>*>(pGdata);
+	L1List<ninjaEvent_t> *eList = static_cast<L1List<ninjaEvent_t> *>(pGdata);
 	//loadEvents("events.txt", eList);
 	cout << str << ": ";
 	//Danh sách các mã yêu cầu trong tập tin events.txt
@@ -73,7 +73,7 @@ void SecondRequest(string str, L1List<NinjaInfo_t> nList)
 {
 	//Số hiệu ninja được lưu trữ cuối cùng.
 	cout << str << ": ";
-	cout << nList._tail->data.id;
+	cout << nList.request2nd;
 	cout << endl;
 }
 void ThirdRequest(string str, L1List<NinjaInfo_t> nList)
@@ -403,57 +403,114 @@ void TenthRequest(string str, L1List<NinjaInfo_t> nList)
 		return;
 	}
 	//Build the list of time_stop like 12th-request
-	L1Item<NinjaInfo_t> *pHead = nList._head;
-	L1List<ninja_statistic> *sList = new L1List<ninja_statistic>();
-	ninja_statistic root;
-	//set root by pHead
-	strcpy(root.id, pHead->data.id);
-	root.tempLatitude = pHead->data.latitude;
-	root.tempLongitude = pHead->data.longitude;
-	root.timestamp = pHead->data.timestamp;
-	root.time_stop = 0;
-	pHead = pHead->next;
-	while (true)
+	L1Item<NinjaInfo_t> *pRun = nList._head;
+	L1Item<NinjaInfo_t> *root = nList._head;
+	L1Item<NinjaInfo_t> *ptmp = root;
+	L1List<ninja_statistic> sList;
+	ninja_statistic njStat;
+	strcpy(njStat.id, root->data.id);
+	// time_t time_stop = 0;
+	// time_t time_stop_Max = 0;
+	// char id_time_stop_Max[ID_MAX_LENGTH];
+	// strcpy(id_time_stop_Max, root->data.id);
+	pRun = pRun->next;
+	while (pRun)
 	{
-		if (pHead != NULL) //if pHead isnt NULL
+		if (strcmp(pRun->data.id, root->data.id) == 0)
 		{
-			if (strcmp(root.id, pHead->data.id) != 0) //another ninja
+			double d = distanceEarth(root->data.latitude, root->data.longitude, pRun->data.latitude, pRun->data.longitude);
+			if (d < 0.005)
 			{
-				//add old root to linkedlist
-				sList->push_back(root);
-				//set new root by pHead with new id
-				strcpy(root.id, pHead->data.id);
-				root.tempLatitude = pHead->data.latitude;
-				root.tempLongitude = pHead->data.longitude;
-				root.timestamp = pHead->data.timestamp;
-				root.time_stop = 0; //reset
+				ptmp = pRun;
 			}
 			else
 			{
-				//the same ninja
-				double d = distanceEarth(root.tempLatitude, root.tempLongitude, pHead->data.latitude, pHead->data.longitude);
-				if (d < 0.005) //if ninja stops moving
-				{
-					root.time_stop += (int)(pHead->data.timestamp - root.timestamp);
-				}
-				//set new root by pHead with old id
-				root.tempLatitude = pHead->data.latitude;
-				root.tempLongitude = pHead->data.longitude;
-				root.timestamp = pHead->data.timestamp;
+				njStat.time_stop += ptmp->data.timestamp - root->data.timestamp;
+				root = ptmp = pRun;
 			}
 		}
-		else //if pHead is NULL
+		else
 		{
-			sList->push_back(root);
-			break;
+			njStat.time_stop += ptmp->data.timestamp - root->data.timestamp;
+			// if (njStat.time_stop > time_stop_Max)
+			// {
+			// 	strcpy(id_time_stop_Max, root->data.id);
+			// 	time_stop_Max = time_stop;
+			// }
+			sList.push_back(njStat);
+			root = ptmp = pRun;
+			njStat.time_stop = 0;
+			strcpy(njStat.id, root->data.id);
 		}
-		pHead = pHead->next; //move pHead to next
+		pRun = pRun->next;
 	}
+	njStat.time_stop += ptmp->data.timestamp - root->data.timestamp;
+	// if (time_stop > time_stop_Max)
+	// {
+	// 	strcpy(id_time_stop_Max, root->data.id);
+	// 	time_stop_Max = time_stop;
+	// }
+	sList.push_back(njStat);
+
+	// //Số hiệu của ninja có tổng thời gian di chuyển trong ngày nhiều nhất.
+	// cout << str << ": ";
+	// if (nList.isEmpty())
+	// {
+	// 	cout << "Not found ninja's database" << endl;
+	// 	return;
+	// }
+	// //Build the list of time_stop like 12th-request
+	// L1Item<NinjaInfo_t> *pHead = nList._head;
+	// L1List<ninja_statistic> *sList = new L1List<ninja_statistic>();
+	// ninja_statistic root;
+	// //set root by pHead
+	// strcpy(root.id, pHead->data.id);
+	// root.tempLatitude = pHead->data.latitude;
+	// root.tempLongitude = pHead->data.longitude;
+	// root.timestamp = pHead->data.timestamp;
+	// root.time_stop = 0;
+	// pHead = pHead->next;
+	// while (true)
+	// {
+	// 	if (pHead != NULL) //if pHead isnt NULL
+	// 	{
+	// 		if (strcmp(root.id, pHead->data.id) != 0) //another ninja
+	// 		{
+	// 			//add old root to linkedlist
+	// 			sList->push_back(root);
+	// 			//set new root by pHead with new id
+	// 			strcpy(root.id, pHead->data.id);
+	// 			root.tempLatitude = pHead->data.latitude;
+	// 			root.tempLongitude = pHead->data.longitude;
+	// 			root.timestamp = pHead->data.timestamp;
+	// 			root.time_stop = 0; //reset
+	// 		}
+	// 		else
+	// 		{
+	// 			//the same ninja
+	// 			double d = distanceEarth(root.tempLatitude, root.tempLongitude, pHead->data.latitude, pHead->data.longitude);
+	// 			if (d < 0.005) //if ninja stops moving
+	// 			{
+	// 				root.time_stop += (int)(pHead->data.timestamp - root.timestamp);
+	// 			}
+	// 			//set new root by pHead with old id
+	// 			root.tempLatitude = pHead->data.latitude;
+	// 			root.tempLongitude = pHead->data.longitude;
+	// 			root.timestamp = pHead->data.timestamp;
+	// 		}
+	// 	}
+	// 	else //if pHead is NULL
+	// 	{
+	// 		sList->push_back(root);
+	// 		break;
+	// 	}
+	// 	pHead = pHead->next; //move pHead to next
+	// }
 
 	//Build list entire time of 1 nj in database
-	L1List<ninja_statistic> *sList2 = new L1List<ninja_statistic>();
+	L1List<ninja_statistic> sList2;
 	ninja_statistic root2;
-	pHead = nList._head; //reset pHead
+	L1Item<NinjaInfo_t> *pHead = nList._head; //reset pHead
 	strcpy(root2.id, pHead->data.id);
 	root2.timestamp = pHead->data.timestamp;
 	root2.all_time = 0;
@@ -464,7 +521,7 @@ void TenthRequest(string str, L1List<NinjaInfo_t> nList)
 		{
 			if (strcmp(root2.id, pHead->data.id) != 0) //another ninja
 			{
-				sList2->push_back(root2);
+				sList2.push_back(root2);
 				strcpy(root2.id, pHead->data.id);
 				root2.timestamp = pHead->data.timestamp;
 				root2.all_time = 0;
@@ -476,37 +533,39 @@ void TenthRequest(string str, L1List<NinjaInfo_t> nList)
 		}
 		else //if pHead is null
 		{
-			sList2->push_back(root2);
+			sList2.push_back(root2);
 			break;
 		}
 		pHead = pHead->next;
 	}
 	//merger sList2 to sList
-	L1Item<ninja_statistic> *ptmp = sList->_head;
-	L1Item<ninja_statistic> *ptmp2 = sList2->_head;
-	while (ptmp && ptmp2)
+	L1Item<ninja_statistic> *ptmp2 = sList._head;
+	L1Item<ninja_statistic> *ptmp3 = sList2._head;
+	while (ptmp2 && ptmp3)
 	{
 		if (strcmp(ptmp->data.id, ptmp2->data.id) == 0)
 		{
-			ptmp->data.time_move = ptmp2->data.all_time - ptmp->data.time_stop;
+			ptmp2->data.time_move = ptmp3->data.all_time - ptmp2->data.time_stop;
 		}
-		ptmp = ptmp->next;
+		ptmp2 = ptmp2->next;
+		ptmp3 = ptmp3->next;
+	}
+	sList2.clean();
+	ptmp2 = sList._head; //reset ptmp
+	ninja_statistic nj_max_timemove;
+	strcpy(nj_max_timemove.id, ptmp2->data.id);
+	nj_max_timemove.time_move = ptmp2->data.time_move;
+	for (int i = 0; i < sList.getSize(); i++)
+	{
+		if (nj_max_timemove.time_move < ptmp2->data.time_move)
+		{
+			strcpy(nj_max_timemove.id, ptmp2->data.id);
+			nj_max_timemove.time_move = ptmp2->data.time_move;
+		}
 		ptmp2 = ptmp2->next;
 	}
-	ptmp = sList->_head; //reset ptmp
-	ninja_statistic nj_max_timemove;
-	strcpy(nj_max_timemove.id, ptmp->data.id);
-	nj_max_timemove.time_move = ptmp->data.time_move;
-	for (int i = 0; i < sList->getSize(); i++)
-	{
-		if (nj_max_timemove.time_move < ptmp->data.time_move)
-		{
-			strcpy(nj_max_timemove.id, ptmp->data.id);
-			nj_max_timemove.time_move = ptmp->data.time_move;
-		}
-		ptmp = ptmp->next;
-	}
 	cout << nj_max_timemove.id << endl;
+	sList.clean();
 }
 void EleventhRequest(string str, L1List<NinjaInfo_t> nList)
 {
@@ -566,81 +625,10 @@ void EleventhRequest(string str, L1List<NinjaInfo_t> nList)
 		cout << nameList._head->data << endl;
 	else
 		cout << "-1" << endl;
+	nameList.clean();
 }
+
 void TwelfthRequest(string str, L1List<NinjaInfo_t> nList)
-{
-	//in ra màn hình số hiệu của ninja có tổng thời gian dừng lại lớn nhất.
-	//cout << "12: ";
-	cout << str << ": ";
-	L1Item<NinjaInfo_t> *pHead = nList._head;
-	L1List<ninja_statistic> *sList = new L1List<ninja_statistic>();
-	L1Item<NinjaInfo_t> *root;
-	//set root by pHead
-	root = pHead;
-	int time_stop = 0;
-	pHead = pHead->next;
-
-	double timestopMax = 0;
-	char id_maxTime[ID_MAX_LENGTH];
-	while (true)
-	{
-		if (pHead != NULL) //if pHead isnt NULL
-		{
-			if (strcmp(root->data.id, pHead->data.id) != 0) //another ninja
-			{
-				//add old root to linkedlist
-				if (timestopMax < time_stop)
-				{
-					timestopMax = time_stop;
-					strcpy(id_maxTime, root->data.id);
-				}
-				//set new root by pHead with new id
-				root = pHead;
-				time_stop = 0;
-			}
-			else
-			{
-				// //the same ninja
-
-				double d = distanceEarth(root->data.latitude, root->data.longitude, pHead->data.latitude, pHead->data.longitude);
-				if (d < 0.005) //if ninja stops moving
-				{
-					time_stop += (int)(pHead->data.timestamp - root->data.timestamp);
-				}
-				//set new root by pHead with old id
-				root = pHead;
-
-				// L1Item<NinjaInfo_t> *ptmp = root;
-				// while(distanceEarth(root->data.latitude, root->data.longitude, pHead->data.latitude, pHead->data.longitude) < 0.005 && strcmp(pHead->data.id, root->data.id) == 0)
-				// {
-				// 	ptmp = pHead;
-				// 	pHead = pHead->next;
-				// 	if(!pHead) break;
-				// }
-				// time_stop += (int)(ptmp->data.timestamp - root->data.timestamp);
-				// if (distanceEarth(root->data.latitude, root->data.longitude, pHead->data.latitude, pHead->data.longitude) >= 0.005 && strcmp(pHead->data.id, root->data.id) == 0)
-				// 	root = pHead;
-				// else if(strcmp(pHead->data.id, root->data.id) == 0) {}
-				// else
-				// 	pHead = ptmp;
-				// if(root->data.timestamp != ptmp->data.timestamp) pHead = ptmp;
-			}
-		}
-		else //if pHead is NULL
-		{
-			if (timestopMax < time_stop)
-			{
-				timestopMax = time_stop;
-				strcpy(id_maxTime, root->data.id);
-			}
-			break;
-		}
-		pHead = pHead->next; //move pHead to next
-	}
-	cout << id_maxTime /*<< " " << timestopMax*/ << endl;
-}
-
-void TwelfthRequest_2(string str, L1List<NinjaInfo_t> nList)
 {
 	cout << str << ": ";
 	if (nList.isEmpty())
@@ -652,8 +640,8 @@ void TwelfthRequest_2(string str, L1List<NinjaInfo_t> nList)
 	L1Item<NinjaInfo_t> *pRun = nList._head;
 	L1Item<NinjaInfo_t> *root = nList._head;
 	L1Item<NinjaInfo_t> *ptmp = root;
-	int time_stop = 0;
-	int time_stop_Max = 0;
+	time_t time_stop = 0;
+	time_t time_stop_Max = 0;
 	char id_time_stop_Max[ID_MAX_LENGTH];
 	strcpy(id_time_stop_Max, root->data.id);
 	pRun = pRun->next;
@@ -668,13 +656,13 @@ void TwelfthRequest_2(string str, L1List<NinjaInfo_t> nList)
 			}
 			else
 			{
-				time_stop += (int)(ptmp->data.timestamp - root->data.timestamp);
+				time_stop += ptmp->data.timestamp - root->data.timestamp;
 				root = ptmp = pRun;
 			}
 		}
 		else
 		{
-			time_stop += (int)(ptmp->data.timestamp - root->data.timestamp);
+			time_stop += ptmp->data.timestamp - root->data.timestamp;
 			if (time_stop > time_stop_Max)
 			{
 				strcpy(id_time_stop_Max, root->data.id);
@@ -685,7 +673,13 @@ void TwelfthRequest_2(string str, L1List<NinjaInfo_t> nList)
 		}
 		pRun = pRun->next;
 	}
-	cout << id_time_stop_Max << /*" " << time_stop_Max << */endl;
+	time_stop += ptmp->data.timestamp - root->data.timestamp;
+	if (time_stop > time_stop_Max)
+	{
+		strcpy(id_time_stop_Max, root->data.id);
+		time_stop_Max = time_stop;
+	}
+	cout << id_time_stop_Max << /*" " << time_stop_Max << */ endl;
 }
 void ThirteenthRequest(string str, L1List<NinjaInfo_t> nList)
 {
@@ -699,7 +693,7 @@ void FourteenthRequest(string str, L1List<NinjaInfo_t> nList)
 	L1List<NinjaInfo_t> nListUpdate;
 	L1Item<NinjaInfo_t> *pRun = nList._head;
 	L1Item<NinjaInfo_t> *root = pRun;
-	nList.push_back(root->data);
+	nListUpdate.push_back(root->data);
 	pRun = pRun->next;
 	while (pRun)
 	{
@@ -707,32 +701,35 @@ void FourteenthRequest(string str, L1List<NinjaInfo_t> nList)
 		{
 			if (distanceEarth(root->data.latitude, root->data.longitude, pRun->data.latitude, pRun->data.longitude) >= 0.005)
 			{
-				if (strcmp(pRun->next->data.id, root->data.id) == 0)
-					nListUpdate.push_back(pRun->data);
+				//if (strcmp(pRun->next->data.id, root->data.id) == 0)
+				nListUpdate.push_back(pRun->data);
 				root = pRun;
 			}
 		}
 		else
 		{
 			//check the old one
+			//nListUpdate.removeLast();
 			L1Item<NinjaInfo_t> *ptmp = nListUpdate._head;
-			ptmp = ptmp->next;
 			bool lac = false;
-			while (ptmp && lac == false)
+			if (nListUpdate._size > 1)
 			{
-				L1Item<NinjaInfo_t> *ptmp2 = nListUpdate._head;
-				while (ptmp2->data.timestamp != ptmp->data.timestamp)
-				{
-					if (distanceEarth(ptmp2->data.latitude, ptmp2->data.longitude, ptmp->data.latitude, ptmp->data.longitude) < 0.005)
-					{
-						lac = true;
-						break;
-					}
-					ptmp2 = ptmp2->next;
-				}
 				ptmp = ptmp->next;
+				while (ptmp && lac == false)
+				{
+					L1Item<NinjaInfo_t> *ptmp2 = nListUpdate._head;
+					while (ptmp2->data.timestamp != ptmp->data.timestamp)
+					{
+						if (distanceEarth(ptmp2->data.latitude, ptmp2->data.longitude, ptmp->data.latitude, ptmp->data.longitude) < 0.005)
+						{
+							lac = true;
+							break;
+						}
+						ptmp2 = ptmp2->next;
+					}
+					ptmp = ptmp->next;
+				}
 			}
-
 			if (lac == true)
 			{
 				stringstream ss;
@@ -743,19 +740,52 @@ void FourteenthRequest(string str, L1List<NinjaInfo_t> nList)
 			}
 			//Update root
 			root = pRun;
+			nListUpdate.clean();
+			nListUpdate.push_back(root->data);
 		}
 		pRun = pRun->next;
 	}
-	L1Item<string> *ptmp = lac_ninja._head;
-	if (!ptmp)
+	//nListUpdate.removeLast();
+	L1Item<NinjaInfo_t> *ptmp = nListUpdate._head;
+	bool lac = false;
+	if (nListUpdate._size > 1)
+	{
+		ptmp = ptmp->next;
+		while (ptmp && lac == false)
+		{
+			L1Item<NinjaInfo_t> *ptmp2 = nListUpdate._head;
+			while (ptmp2->data.timestamp != ptmp->data.timestamp)
+			{
+				if (distanceEarth(ptmp2->data.latitude, ptmp2->data.longitude, ptmp->data.latitude, ptmp->data.longitude) < 0.005)
+				{
+					lac = true;
+					break;
+				}
+				ptmp2 = ptmp2->next;
+			}
+			ptmp = ptmp->next;
+		}
+	}
+	if (lac == true)
+	{
+		stringstream ss;
+		string target;
+		ss << root->data.id;
+		ss >> target;
+		lac_ninja.push_back(target);
+	}
+	L1Item<string> *ptmp3 = lac_ninja._head;
+
+
+	if (!ptmp3)
 	{
 		cout << "-1" << endl;
 		return;
 	}
-	while (ptmp)
+	while (ptmp3)
 	{
-		cout << ptmp->data << " ";
-		ptmp = ptmp->next;
+		cout << ptmp3->data << " ";
+		ptmp3 = ptmp3->next;
 	}
 	cout << endl;
 }
@@ -764,7 +794,7 @@ bool processEvent(ninjaEvent_t &event, L1List<NinjaInfo_t> &nList, void *pGdata)
 {
 	string choice = event.code;
 	if (choice == "0")
-		ZerothRequest(choice, nList, pGdata); //ok?
+		ZerothRequest(choice, nList, pGdata); //ok
 	else if (choice == "1")
 		FirstRequest(choice, nList); //ok
 	else if (choice == "2")
@@ -776,9 +806,9 @@ bool processEvent(ninjaEvent_t &event, L1List<NinjaInfo_t> &nList, void *pGdata)
 	else if (choice == "9")
 		NinthRequest(choice, nList); //ok
 	else if (choice == "10")
-		TenthRequest(choice, nList);
+		TenthRequest(choice, nList);//ok??
 	else if (choice == "12")
-		TwelfthRequest_2(choice, nList);
+		TwelfthRequest(choice, nList); //ok??
 	else if (choice == "14")
 		FourteenthRequest(choice, nList); //ok
 	else
@@ -798,7 +828,7 @@ bool processEvent(ninjaEvent_t &event, L1List<NinjaInfo_t> &nList, void *pGdata)
 			if (ss.str() == "11")
 				EleventhRequest(choice, nList); //ok
 			else if (ss.str() == "13")
-				return true; //auto ok
+				return false; //auto ok
 			else
 				return false;
 		}

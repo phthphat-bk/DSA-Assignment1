@@ -30,32 +30,64 @@ void    strPrintTime(char* des, time_t& t) {
 
 void loadNinjaDB(char* fName, L1List<NinjaInfo_t> &db) {
 	// TODO: write code to load information from file into db
-	fstream filein(fName, ios::in | ios::out);
-	string temp, timestamp, id, longitude, latitude;
-	getline(filein, temp);
-	NinjaInfo_t nj;
-	while (getline(filein, temp, ','))
-	{
-		getline(filein, timestamp, ',');
-		struct tm tm;
-		istringstream ss(timestamp);
-		ss >> get_time(&tm, "%d/%m/%Y %H:%M:%S");
-		nj.timestamp = mktime(&tm);
+	L1List<NinjaInfo_t> db_temp;
+    fstream filein(fName, ios::in | ios::out);
+    string temp, timestamp, id, longitude, latitude;
+    getline(filein, temp);
+    NinjaInfo_t nj;
+    while (getline(filein, temp, ','))
+    {
+        getline(filein, timestamp, ',');
+        struct tm tm;
+        istringstream ss(timestamp);
+        ss >> get_time(&tm, "%m/%d/%Y %H:%M:%S");
+        nj.timestamp = mktime(&tm);
 
-		getline(filein, id, ',');
-		while(id.length() < 4)
-		{
-			id = "0" + id;
-		}
-		strcpy(nj.id, id.c_str());
-		getline(filein, longitude, ',');
-		istringstream(longitude) >> nj.longitude;
-		getline(filein, latitude, ',');
-		istringstream(latitude) >> nj.latitude;
-		getline(filein, temp, '\n');
-		db.push_back(nj);
-	}
-	filein.close();
+        getline(filein, id, ',');
+        while (id.length() < 4)
+        {
+            id = "0" + id;
+        }
+        strcpy(nj.id, id.c_str());
+        getline(filein, longitude, ',');
+        istringstream(longitude) >> nj.longitude;
+        getline(filein, latitude, ',');
+        istringstream(latitude) >> nj.latitude;
+        getline(filein, temp, '\n');
+        db_temp.push_back(nj);
+    }
+    filein.close();
+
+	strcpy(db.request2nd, db_temp._tail->data.id);
+    //Convert to old linkedlist
+    while (db_temp._head)
+    {
+        L1Item<NinjaInfo_t> *pCur = db_temp._head;
+        L1Item<NinjaInfo_t> *pNext = pCur->next;
+        NinjaInfo_t nj;
+        nj = db_temp._head->data;
+        db.push_back(nj);
+        while (pNext)
+        {
+            if (strcmp(pNext->data.id, nj.id) == 0)
+            {
+                nj = pNext->data;
+                db.push_back(nj);
+                pCur->next = pNext->next;
+                L1Item<NinjaInfo_t> *pTemp = pNext;
+                pNext = pNext->next;
+                delete pTemp;
+                pTemp = NULL;
+                db_temp._size--;
+            }
+            else
+            {
+                pCur = pNext;
+                pNext = pNext->next;
+            }
+        }
+        db_temp.removeHead();
+    }
 }
 
 bool parseNinjaInfo(char* pBuf, NinjaInfo_t& nInfo) {

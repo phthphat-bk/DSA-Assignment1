@@ -48,10 +48,22 @@ class L1List
   public:
     L1Item<T> *_head; // The head pointer of linked list
     L1Item<T> *_tail; //The end pointer of linked list
+    char request2nd[10]; //Special for 2nd request
     size_t _size;     // number of elements in this list
   public:
-    L1List() : _head(NULL), _size(0) {}
-    void clean();
+    L1List() : _head(NULL), _size(0) {};
+    void clean()
+    {
+        L1Item<T> *ptmp = _head;
+        while(ptmp)
+        {
+            L1Item<T> *ptmp2 = ptmp;
+            ptmp = ptmp->next;
+            delete ptmp2;
+        }
+        _head = _tail = NULL;
+        _size = 0;
+    }
     bool isEmpty()
     {
         return _head == NULL;
