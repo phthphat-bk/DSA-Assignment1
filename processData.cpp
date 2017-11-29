@@ -8,20 +8,10 @@
  */
 #include "eventLib.h"
 #include "dbLib.h"
+#define Specialkm 0.005
 using namespace std;
 void releaseBusGlobalData(){};
 void releaseNinjaGlobalData(){};
-
-// struct ninja_statistic
-// {
-// 	char id[ID_MAX_LENGTH];
-// 	double tempLongitude, tempLatitude;
-// 	double distance;
-// 	time_t timestamp;
-// 	int all_time;
-// 	int time_move;
-// 	int time_stop;
-// };
 
 template <class T>
 void SortMaxtoMin(L1List<T> &list)
@@ -51,10 +41,9 @@ void SortMaxtoMin(L1List<T> &list)
 void ZerothRequest(string str, L1List<NinjaInfo_t> nList, void *pGdata)
 {
 	L1List<ninjaEvent_t> *eList = static_cast<L1List<ninjaEvent_t> *>(pGdata);
-	//loadEvents("events.txt", eList);
 	cout << str << ": ";
 	//Danh sách các mã yêu cầu trong tập tin events.txt
-	L1Item<ninjaEvent> *pEventHead = eList->_head;
+	L1Item<ninjaEvent_t> *pEventHead = eList->_head;
 	while (pEventHead)
 	{
 		cout << pEventHead->data.code << " ";
@@ -146,7 +135,7 @@ void FifthRequest(string str, L1List<NinjaInfo_t> nList)
 			found = true;
 			root = pHead;
 			pHead = pHead->next;
-			if (distanceEarth(root->data.latitude, root->data.longitude, pHead->data.latitude, pHead->data.longitude) >= 0.005)
+			if (distanceEarth(root->data.latitude, root->data.longitude, pHead->data.latitude, pHead->data.longitude) >= Specialkm)
 			{
 				char time[30];
 				strPrintTime(time, root->data.timestamp);
@@ -163,7 +152,7 @@ void FifthRequest(string str, L1List<NinjaInfo_t> nList)
 					cout << time << endl;
 					break;
 				}
-				if (distanceEarth(root->data.latitude, root->data.longitude, pHead->data.latitude, pHead->data.longitude) >= 0.005) //compare distance the root-behind and root
+				if (distanceEarth(root->data.latitude, root->data.longitude, pHead->data.latitude, pHead->data.longitude) >= Specialkm) //compare distance the root-behind and root
 				{
 					char time[30];
 					strPrintTime(time, pHead->data.timestamp);
@@ -187,7 +176,7 @@ bool existStopPoint(L1Item<NinjaInfo_t> *p)
 	pRun = pRun->next;
 	while (pRun && strcmp(pRun->data.id, root->data.id) == 0)
 	{
-		if (distanceEarth(root->data.latitude, root->data.longitude, pRun->data.latitude, pRun->data.longitude) >= 0.005)
+		if (distanceEarth(root->data.latitude, root->data.longitude, pRun->data.latitude, pRun->data.longitude) >= Specialkm)
 		{
 			root = pRun;
 		}
@@ -224,7 +213,7 @@ void SixthRequest(string str, L1List<NinjaInfo_t> nList)
 			pHead = pHead->next;
 			while (pHead && strcmp(pHead->data.id, root->data.id) == 0)
 			{
-				if (distanceEarth(root->data.latitude, root->data.longitude, pHead->data.latitude, pHead->data.longitude) >= 0.005) //compare distance the root-behind and root
+				if (distanceEarth(root->data.latitude, root->data.longitude, pHead->data.latitude, pHead->data.longitude) >= Specialkm) //compare distance the root-behind and root
 				{
 					if (existStopPoint(pHead))
 					{
@@ -276,19 +265,19 @@ void SeventhRequest(string str, L1List<NinjaInfo_t> nList)
 			pHead = pHead->next;
 			if (root->next)
 			{
-				if (distanceEarth(root->next->data.latitude, root->next->data.longitude, root->data.latitude, root->data.longitude) < 0.005)
+				if (distanceEarth(root->next->data.latitude, root->next->data.longitude, root->data.latitude, root->data.longitude) < Specialkm)
 				{
 					count++;
 				}
 			}
 			while (pHead && strcmp(pHead->data.id, root->data.id) == 0)
 			{
-				if (distanceEarth(root->data.latitude, root->data.longitude, pHead->data.latitude, pHead->data.longitude) >= 0.005)
+				if (distanceEarth(root->data.latitude, root->data.longitude, pHead->data.latitude, pHead->data.longitude) >= Specialkm)
 				{
 					root = pHead;
 					if (root->next)
 					{
-						if (distanceEarth(root->next->data.latitude, root->next->data.longitude, root->data.latitude, root->data.longitude) < 0.005)
+						if (distanceEarth(root->next->data.latitude, root->next->data.longitude, root->data.latitude, root->data.longitude) < Specialkm)
 						{
 							count++;
 						}
@@ -397,13 +386,13 @@ void NinthRequest(string str, L1List<NinjaInfo_t> nList)
 	}
 	cout << id_maxDistance << endl;
 }
-struct ninja_stat
+typedef struct 
 {
 	char id[ID_MAX_LENGTH];
 	time_t timeEntire;
 	time_t timeStop;
 	time_t timeMove;
-};
+}ninja_stat_t;
 void TenthRequest(string str, L1List<NinjaInfo_t> nList)
 {
 	//Số hiệu của ninja có tổng thời gian di chuyển trong ngày nhiều nhất.
@@ -417,8 +406,8 @@ void TenthRequest(string str, L1List<NinjaInfo_t> nList)
 	L1Item<NinjaInfo_t> *pRun = nList._head;
 	L1Item<NinjaInfo_t> *root = nList._head;
 	L1Item<NinjaInfo_t> *ptmp = root;
-	L1List<ninja_stat> sList;
-	ninja_stat njSt;
+	L1List<ninja_stat_t> sList;
+	ninja_stat_t njSt;
 	strcpy(njSt.id, root->data.id);
 	njSt.timeStop = 0;
 	pRun = pRun->next;
@@ -451,10 +440,10 @@ void TenthRequest(string str, L1List<NinjaInfo_t> nList)
 	sList.push_back(njSt);
 
 	//Build list of timeEntire
-	L1List<ninja_stat> sList2;
+	L1List<ninja_stat_t> sList2;
 	L1Item<NinjaInfo_t> *root2 = nList._head;
 	L1Item<NinjaInfo_t> *pRun2 = nList._head;
-	ninja_stat njSt2;
+	ninja_stat_t njSt2;
 	strcpy(njSt2.id, root2->data.id);
 	njSt2.timeEntire = 0;
 	pRun2 = pRun2->next;
@@ -478,8 +467,8 @@ void TenthRequest(string str, L1List<NinjaInfo_t> nList)
 	sList2.push_back(njSt2);
 
 	//Merge 2 sList and sList2 to sList
-	L1Item<ninja_stat> *pHead = sList._head;
-	L1Item<ninja_stat> *pHead2 = sList2._head;
+	L1Item<ninja_stat_t> *pHead = sList._head;
+	L1Item<ninja_stat_t> *pHead2 = sList2._head;
 	// L1List<ninja_stat> sList3;
 	// ninja_stat njSt3;
 
@@ -634,7 +623,7 @@ void TwelfthRequest(string str, L1List<NinjaInfo_t> nList)
 		if (strcmp(pRun->data.id, root->data.id) == 0)
 		{
 			double d = distanceEarth(root->data.latitude, root->data.longitude, pRun->data.latitude, pRun->data.longitude);
-			if (d < 0.005)
+			if (d < Specialkm)
 			{
 				ptmp = pRun;
 			}
@@ -683,7 +672,7 @@ void FourteenthRequest(string str, L1List<NinjaInfo_t> nList)
 	{
 		if (strcmp(root->data.id, pRun->data.id) == 0)
 		{
-			if (distanceEarth(root->data.latitude, root->data.longitude, pRun->data.latitude, pRun->data.longitude) >= 0.005)
+			if (distanceEarth(root->data.latitude, root->data.longitude, pRun->data.latitude, pRun->data.longitude) >= Specialkm)
 			{
 				//if (strcmp(pRun->next->data.id, root->data.id) == 0)
 				nListUpdate.push_back(pRun->data);
@@ -704,7 +693,7 @@ void FourteenthRequest(string str, L1List<NinjaInfo_t> nList)
 					L1Item<NinjaInfo_t> *ptmp2 = nListUpdate._head;
 					while (ptmp2->data.timestamp != ptmp->data.timestamp)
 					{
-						if (distanceEarth(ptmp2->data.latitude, ptmp2->data.longitude, ptmp->data.latitude, ptmp->data.longitude) < 0.005)
+						if (distanceEarth(ptmp2->data.latitude, ptmp2->data.longitude, ptmp->data.latitude, ptmp->data.longitude) < Specialkm)
 						{
 							lac = true;
 							break;
@@ -740,7 +729,7 @@ void FourteenthRequest(string str, L1List<NinjaInfo_t> nList)
 			L1Item<NinjaInfo_t> *ptmp2 = nListUpdate._head;
 			while (ptmp2->data.timestamp != ptmp->data.timestamp)
 			{
-				if (distanceEarth(ptmp2->data.latitude, ptmp2->data.longitude, ptmp->data.latitude, ptmp->data.longitude) < 0.005)
+				if (distanceEarth(ptmp2->data.latitude, ptmp2->data.longitude, ptmp->data.latitude, ptmp->data.longitude) < Specialkm)
 				{
 					lac = true;
 					break;
@@ -811,7 +800,7 @@ bool processEvent(ninjaEvent_t &event, L1List<NinjaInfo_t> &nList, void *pGdata)
 			if (ss.str() == "11")
 				EleventhRequest(choice, nList); //ok
 			else if (ss.str() == "13")
-				return false; //auto ok
+				return true; //auto ok
 			else
 				return false;
 		}

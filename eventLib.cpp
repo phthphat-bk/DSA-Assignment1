@@ -14,11 +14,13 @@
 
 /// NOTE: each event will be separated by spaces, or endline character
 void loadEvents(char* fName, L1List<ninjaEvent_t> &eList) {
-	string str;
+	string str, temp;
 	fstream filein(fName, ios::in | ios::out);
-	while (getline(filein, str))
+	getline(filein, temp, ';');
+	stringstream sstemp(temp);
+	while (getline(sstemp, str))
 	{
-		istringstream ss(str);
+		stringstream ss(str);
 		ninjaEvent_t nje;
 		while (ss >> nje.code) eList.push_back(nje);
 	}
